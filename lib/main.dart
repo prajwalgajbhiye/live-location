@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:live_location_v2/test_component.dart';
 
 import 'firebase_options.dart';
-import 'login_page/auth_gate.dart';
 import 'new_login_page/login_page.dart';
 import 'location/map_page.dart';
 

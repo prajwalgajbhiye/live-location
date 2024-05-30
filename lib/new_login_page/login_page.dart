@@ -124,8 +124,9 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
-                const Icon(
-                  Icons.lock,
+                 Icon(
+                  Icons.person,
+                  color: Colors.purple.shade900,
                   size: 100,
                 ),
                 const SizedBox(height: 50),

@@ -84,8 +84,10 @@ class _RegistrationPageState extends State<RegistrationPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
-                const Icon(
-                  Icons.lock,
+                 Icon(
+                  Icons.person,
+                  color: Colors.purple.shade900,
+
                   size: 100,
                 ),
                 const SizedBox(height: 50),
@@ -123,7 +125,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                     padding: const EdgeInsets.all(25),
                     margin: const EdgeInsets.symmetric(horizontal: 25),
                     decoration: BoxDecoration(
-                      color: Colors.black,
+                      color: Colors.purple.shade500,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(

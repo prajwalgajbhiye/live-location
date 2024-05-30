@@ -11,7 +11,6 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import '../consts.dart';
 import '../new_login_page/login_page.dart';
 
 void main() async {
@@ -77,7 +76,7 @@ class _MapScreenState extends State<MapScreen> {
     await FirebaseAuth.instance.signOut();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => LoginPage()),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
           (Route<dynamic> route) => false,
     );
   }
@@ -374,7 +373,7 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
-          SizedBox(height: 100,),
+          const SizedBox(height: 100,),
 
           // Distance containers on top of the map
           Positioned(
@@ -383,7 +382,7 @@ class _MapScreenState extends State<MapScreen> {
             right: 10.0,
             child: Column(
               children: [
-                SizedBox(height: 50,),
+                const SizedBox(height: 50,),
 
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),

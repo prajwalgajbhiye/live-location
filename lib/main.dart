@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:live_location_v2/test_component.dart';
 
 import 'firebase_options.dart';
 import 'new_login_page/login_page.dart';
@@ -25,7 +24,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: AuthGate(),
+      home: const AuthGate(),
       debugShowCheckedModeBanner: false
     );
   }
@@ -47,7 +46,7 @@ class AuthGate extends StatelessWidget {
         }
         // If user is logged in, navigate to MapScreen
         if (snapshot.data != null) {
-          return MapScreen();
+          return const MapScreen();
         }
         // If user is not logged in, navigate to LoginPage
         return LoginPage();

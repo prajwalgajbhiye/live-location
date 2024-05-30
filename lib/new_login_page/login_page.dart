@@ -5,13 +5,12 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:live_location_v2/new_login_page/registration_page.dart';
 import '../location/map_page.dart';
-import '../test_component.dart';
 import 'components/my_button.dart';
 import 'components/my_textfield.dart';
 import 'components/square_tile.dart';
 
 class LoginPage extends StatefulWidget {
-  LoginPage({super.key});
+  const LoginPage({super.key});
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -107,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
       });
       print(e);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred, please try again')),
+        const SnackBar(content: Text('An error occurred, please try again')),
       );
     } finally {
       SystemChannels.textInput.invokeMethod('TextInput.hide');
@@ -203,7 +202,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     GestureDetector(
                       onTap: () => signInWithGoogle(context),
-                      child: SquareTile(imagePath: 'images/google.png'),
+                      child: const SquareTile(imagePath: 'images/google.png'),
                     ),
                     const SizedBox(width: 25),
                     const SquareTile(imagePath: 'images/apple.png')

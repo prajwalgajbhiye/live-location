@@ -1,11 +1,10 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:live_location_v2/location/avtar/avtar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:async';
 import 'dart:math';
@@ -63,7 +62,6 @@ class _MapScreenState extends State<MapScreen> {
     _getCurrentLocation();
     _setupLocationUpdates();
     _loadSavedEmailAndFetchLocation();
-    _loadSavedAvatar();
   }
 
   @override
@@ -112,21 +110,6 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Future<void> _loadCustomIcons(String avatarUrl) async {
-    _currentUserIcon =
-        BitmapDescriptor.fromBytes(await getBytesFromAssets(avatarUrl, 200));
-  }
-
-  Future<Uint8List> getBytesFromAssets(String path, int width) async {
-    ByteData data = await rootBundle.load(path);
-    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
-        targetHeight: width);
-    ui.FrameInfo fi = await codec.getNextFrame();
-    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
-        .buffer
-        .asUint8List();
-  }
-
   Future<void> _fetchUserLocationByEmail(String email) async {
     print("Fetching user location for email: $email");
     try {
@@ -162,11 +145,14 @@ class _MapScreenState extends State<MapScreen> {
                   .animateCamera(CameraUpdate.newLatLng(_otherUserLocation!));
             });
             // Fetch and set the avatar for the other user
-            var userDoc = await _firestore.collection('users').doc(userId).get();
+            var userDoc = await _firestore.collection('users')
+                .doc(userId)
+                .get();
             if (userDoc.exists && userDoc.data() != null) {
               var avatarUrl = userDoc.data()!['avatarUrl'];
               if (avatarUrl != null) {
-                _otherUserIcon = BitmapDescriptor.fromBytes(await getBytesFromAssets(avatarUrl, 200));
+                _otherUserIcon = BitmapDescriptor.fromBytes(
+                    await getBytesFromAssets(avatarUrl, 200));
                 setState(() {});
               }
             }
@@ -273,66 +259,37 @@ class _MapScreenState extends State<MapScreen> {
 
   double _toRadians(double degree) => degree * pi / 180.0;
 
-  Future<void> _setAvatar(String imageUrl) async {
+  Future<void> _saveEmail(String email) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('savedEmail', email);
+  }
+
+  Future<void> _saveEmailToFirestore(String email) async {
     var user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await _firestore.collection('users').doc(user.uid).update({
-        'avatarUrl': imageUrl,
+      await _firestore.collection('users').doc(user.uid).set({
+        'email': email,
       });
-      await _firestore.collection('locations').doc(user.uid).update({
-        'avatarUrl': imageUrl,
-      });
-      _currentUserIcon = BitmapDescriptor.fromBytes(await getBytesFromAssets(imageUrl, 200));
-      _saveAvatarToPreferences(imageUrl);
-      setState(() {});
     }
   }
 
-  Future<void> _saveAvatarToPreferences(String imageUrl) async {
+  Future<void> _loadSavedEmailAndFetchLocation() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('avatarUrl', imageUrl);
-  }
-
-  Future<void> _loadSavedAvatar() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? avatarUrl = prefs.getString('avatarUrl');
-    if (avatarUrl != null) {
-      await _loadCustomIcons(avatarUrl);
-      setState(() {});
+    String? savedEmail = prefs.getString('savedEmail');
+    if (savedEmail == null) {
+      var user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        var userDoc = await _firestore.collection('users').doc(user.uid).get();
+        savedEmail = userDoc.data()?['email'];
+        if (savedEmail != null) {
+          _emailController.text = savedEmail;
+          _fetchUserLocationByEmail(savedEmail);
+        }
+      }
+    } else {
+      _emailController.text = savedEmail;
+      _fetchUserLocationByEmail(savedEmail);
     }
-  }
-
-  void _showImageDialog(BuildContext context, String imageUrl) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Expanded(child: Image.asset(imageUrl)),
-              const SizedBox(height: 10),
-              const Text('Set image as avatar?'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                await _setAvatar(imageUrl);
-                Navigator.of(context).pop();
-              },
-              child: const Text('Yes'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('No'),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   void _showEmailDialog() {
@@ -369,163 +326,121 @@ class _MapScreenState extends State<MapScreen> {
         .showSnackBar(SnackBar(content: Text(message)));
   }
 
-  Future<void> _saveEmail(String email) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('savedEmail', email);
+  Future<Uint8List> getBytesFromAssets(String path, int width) async {
+    ByteData data = await rootBundle.load(path);
+    ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List(),
+        targetHeight: width);
+    ui.FrameInfo fi = await codec.getNextFrame();
+    return (await fi.image.toByteData(format: ui.ImageByteFormat.png))!
+        .buffer
+        .asUint8List();
   }
 
-  Future<void> _saveEmailToFirestore(String email) async {
-    var user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await _firestore.collection('users').doc(user.uid).set({
-        'email': email,
-      });
-    }
-  }
-
-  Future<void> _loadSavedEmailAndFetchLocation() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedEmail = prefs.getString('savedEmail');
-    if (savedEmail == null) {
-      var user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        var userDoc = await _firestore.collection('users').doc(user.uid).get();
-        savedEmail = userDoc.data()?['email'];
-        if (savedEmail != null) {
-          _emailController.text = savedEmail;
-          _fetchUserLocationByEmail(savedEmail);
-        }
-      }
-    } else {
-      _emailController.text = savedEmail;
-      _fetchUserLocationByEmail(savedEmail);
-    }
+  Future<void> _loadCustomIcons(String avatarUrl) async {
+    _currentUserIcon =
+        BitmapDescriptor.fromBytes(await getBytesFromAssets(avatarUrl, 200));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text("Map Page"),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _showLogoutDialog(context),
-          ),
-        ],
-      ),
       body: Stack(
         children: [
-          Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Distance: ${_distance?.toStringAsFixed(2) ?? 'Calculating...'} km',
-                  style: const TextStyle(fontSize: 18),
-                ),
+          // Google Map covers the entire screen
+          Positioned.fill(
+            child: GoogleMap(
+              onMapCreated: (controller) {
+                _mapController = controller;
+              },
+              markers: {
+                if (_currentLocation != null)
+                  Marker(
+                    markerId: const MarkerId('User 1'),
+                    position: _currentLocation!,
+                    icon: _currentUserIcon ?? BitmapDescriptor.defaultMarker,
+                    infoWindow: const InfoWindow(title: "Your Location"),
+                  ),
+                if (_otherUserLocation != null)
+                  Marker(
+                    markerId: const MarkerId('User 2'),
+                    position: _otherUserLocation!,
+                    icon: _otherUserIcon ?? BitmapDescriptor.defaultMarker,
+                    infoWindow: const InfoWindow(title: "Other User Location"),
+                  ),
+              },
+              initialCameraPosition: const CameraPosition(
+                target: LatLng(20.5937, 78.9629),
+                zoom: 7.0,
               ),
-              Expanded(
-                child: GoogleMap(
-                  onMapCreated: (controller) {
-                    _mapController = controller;
-                  },
-                  markers: {
-                    if (_currentLocation != null)
-                      Marker(
-                          markerId: const MarkerId('User 1'),
-                          position: _currentLocation!,
-                          icon: _currentUserIcon ??
-                              BitmapDescriptor.defaultMarker,
-                          infoWindow: const InfoWindow(title: "Your Location")),
-                    if (_otherUserLocation != null)
-                      Marker(
-                          markerId: const MarkerId('User 2'),
-                          position: _otherUserLocation!,
-                          icon:
-                          _otherUserIcon ?? BitmapDescriptor.defaultMarker,
-                          infoWindow:
-                          const InfoWindow(title: "Other User Location")),
-                  },
-                  initialCameraPosition: const CameraPosition(
-                    target: LatLng(20.5937, 78.9629),
-                    // Coordinates for the center of India
-                    zoom: 7.0,
+            ),
+          ),
+          SizedBox(height: 100,),
+
+          // Distance containers on top of the map
+          Positioned(
+            top: 10.0,
+            left: 10.0,
+            right: 10.0,
+            child: Column(
+              children: [
+                SizedBox(height: 50,),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 12.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: List.generate(1, (index) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                                padding: const EdgeInsets.all(8.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8.0),
+                                  border: Border.all(color: Colors.black),
+                                ),
+                                child: Text(
+                                  'Distance: ${_distance?.toStringAsFixed(2) ?? 'Calculating...'} km',
+                                  style: const TextStyle(fontSize: 18, color: Colors.black),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),                        color: Colors.black,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.logout, color: Colors.white),
+                          onPressed: () => _showLogoutDialog(context),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+          // Floating action button at the bottom left
           Align(
             alignment: Alignment.bottomLeft,
-            child: Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: FloatingActionButton(
-                    onPressed: _showEmailDialog,
-                    tooltip: 'Enter Email',
-                    child: const Icon(Icons.mail),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(2),
-                  height: 50,
-                  width: 150,
-                  decoration: const BoxDecoration(
-                      color: Colors.white,
-                      border: Border(
-                          left: BorderSide(color: Colors.black, width: 2),
-                          right: BorderSide(color: Colors.black, width: 2),
-                          top: BorderSide(color: Colors.black, width: 2),
-                          bottom: BorderSide(color: Colors.black, width: 2))),
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      // crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Avtar(
-                            onTap: () {
-                              _showImageDialog(
-                                  context, boy1); // Replace with your image URL
-                            },
-                            image: boy1),
-                        Avtar(
-                            onTap: () {
-                              _showImageDialog(context, boy2);
-                            },
-                            image: boy2),
-                        Avtar(
-                            onTap: () {
-                              _showImageDialog(context, boy3);
-                            },
-                            image: boy3),
-                        Avtar(
-                            onTap: () {
-                              _showImageDialog(context, girl2);
-                            },
-                            image: girl2),
-                        Avtar(
-                            onTap: () {
-                              _showImageDialog(context, boy4);
-                            },
-                            image: boy4),
-                        Avtar(
-                            onTap: () {
-                              _showImageDialog(context, boy1);
-                            },
-                            image: boy1),
-                      ],
-                    ),
-                  ),
-                )
-              ],
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: FloatingActionButton(
+                onPressed: _showEmailDialog,
+                tooltip: 'Enter Email',
+                child: const Icon(Icons.mail),
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../consts.dart';
 import '../location/map_page.dart';
+import '../test_component.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

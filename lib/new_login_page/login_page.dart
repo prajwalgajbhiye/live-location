@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:live_location_v2/new_login_page/registration_page.dart';
 import '../location/map_page.dart';
+import '../test_component.dart';
 import 'components/my_button.dart';
 import 'components/my_textfield.dart';
 import 'components/square_tile.dart';

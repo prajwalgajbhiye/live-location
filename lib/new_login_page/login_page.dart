@@ -203,10 +203,10 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     GestureDetector(
                       onTap: () => signInWithGoogle(context),
-                      child: const SquareTile(imagePath: 'images/google.png'),
+                      child: const SquareTile(imagePath: 'assets/google.png'),
                     ),
                     const SizedBox(width: 25),
-                    const SquareTile(imagePath: 'images/apple.png')
+                    const SquareTile(imagePath: 'assets/apple.png')
                   ],
                 ),
                 const SizedBox(height: 50),

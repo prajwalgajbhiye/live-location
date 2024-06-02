@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:live_location_v2/new_login_page/registration_page.dart';
+import 'package:live_location_v2/pages/registration_page.dart';
 import '../location/map_page.dart';
 import 'components/my_button.dart';
 import 'components/my_textfield.dart';
@@ -118,18 +118,18 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Expanded(
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 50),
-                 Icon(
+                const SizedBox(height: 30),
+                Icon(
                   Icons.person,
                   color: Colors.purple.shade900,
                   size: 100,
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 30),
                 Text(
                   'Welcome back, you\'ve been missed!',
                   style: TextStyle(
@@ -168,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                     : MyButton(
                   onTap: () => signUserIn(context),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Row(
@@ -195,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 30),
                 _googleLoading
                     ? const CircularProgressIndicator()
                     : Row(
@@ -209,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
                     const SquareTile(imagePath: 'assets/apple.png')
                   ],
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 30),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

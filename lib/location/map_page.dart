@@ -11,7 +11,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import '../new_login_page/login_page.dart';
+import '../pages/login_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

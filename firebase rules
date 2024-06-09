@@ -1,0 +1,23 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read and write their own user document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow authenticated users to read and write their own location document
+    match /locations/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow authenticated users to read all location documents
+    match /locations/{document=**} {
+      allow read: if request.auth != null;
+    }
+
+    // Allow authenticated users to read and write to the usernames collection
+    match /usernames/{username} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
